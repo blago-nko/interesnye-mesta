@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>карта сайта | {{site_name}}</title>
+
+    <!-- ⛔ ВРЕМЕННО: ЗАПРЕТ ИНДЕКСАЦИИ -->
+    <meta name="robots" content="noindex, nofollow">
+
+    <link rel="stylesheet" href="/shared-assets/css/base.css">
+    <link rel="stylesheet" href="/shared-assets/css/mobile.css">
+    <link rel="stylesheet" href="/shared-assets/css/themes/{{theme}}.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <div class="logo"><a href="/">{{site_name}}</a></div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="/">Главная</a></li>
+                    <li><a href="/about.html">О нас</a></li>
+                    <li><a href="/contacts.html">Контакты</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <style>
+  .sitemap-container {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+  }
+  .sitemap-title {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 30px;
+    font-size: 24px;
+  }
+  .post-list {
+    list-style-type: none;
+    padding-left: 0;
+  }
+  .post-item {
+    margin: 8px 0;
+    padding: 12px;
+    background: #f9f9f9;
+    border-left: 4px solid #3498db;
+    border-radius: 0 4px 4px 0;
+  }
+  .post-link {
+    color: #2980b9;
+    text-decoration: none;
+    font-weight: 500;
+    display: block;
+  }
+  .post-link:hover {
+    color: #166fad;
+    text-decoration: underline;
+  }
+  .loading {
+    color: #7f8c8d;
+    font-style: italic;
+    text-align: center;
+    padding: 40px;
+  }
+  .error {
+    color: #e74c3c;
+    text-align: center;
+    padding: 40px;
+  }
+</style>
+
+<div class="sitemap-container">
+  <h2 class="sitemap-title">Карта сайта</h2>
+  <div id="sitemapContent">
+    <p class="loading">Загрузка карты сайта...</p>
+  </div>
+</div>
+
+<script>
+//<![CDATA[
+function loadSitemap() {
+  const sitemapContainer = document.getElementById('sitemapContent');
+
+  // Создаём скрипт для загрузки фида через JSONP
+  const script = document.createElement('script');
+  script.src = 'https://interesnye-mesta.obrazslov.ru/feeds/posts/default?max-results=9999&alt=json-in-script&callback=processPosts';
+  document.head.appendChild(script);
+}
+
+function processPosts(data) {
+  const sitemapContainer = document.getElementById('sitemapContent');
+  const posts = data.feed.entry || [];
+
+  if (posts.length === 0) {
+    sitemapContainer.innerHTML = '<p class="error">Посты не найдены. Убедитесь, что блог содержит опубликованные записи.</p>';
+    return;
+  }
+
+  // Собираем уникальные посты по URL
+  const uniquePosts = [];
+  const seenUrls = new Set();
+
+  posts.forEach(post => {
+    const url = post.link.find(l => l.rel === 'alternate')?.href;
+    if (url && !seenUrls.has(url)) {
+      seenUrls.add(url);
+      uniquePosts.push({
+        title: post.title.$t,
+        url: url
+      });
+    }
+  });
+
+  // Сортируем по алфавиту (с учётом русской локализации)
+  uniquePosts.sort((a, b) =>
+    a.title.localeCompare(b.title, 'ru', { sensitivity: 'base' })
+  );
+
+  // Формируем HTML
+  let html = '<ol class="post-list">';
+  uniquePosts.forEach((post, index) => {
+    html += `<li class="post-item">
+              <a href="${post.url}" class="post-link" target="_blank">${post.title}</a>
+            </li>`;
+  });
+  html += '</ol>';
+
+  sitemapContainer.innerHTML = html;
+}
+
+// Запускаем загрузку при загрузке страницы
+document.addEventListener('DOMContentLoaded', loadSitemap);
+//]]>
+</script>
+
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; 2026 НП «Общественное благополучие Воронежа»</p>
+            <p>blagorussia@yandex.ru</p>
+            <div id="social-links"></div>
+        </div>
+    </footer>
+
+    <div id="sticky-bottom-bar"></div>
+
+    <script src="/shared-assets/js/main.js"></script>
+    <script src="/shared-assets/components/StickyBottomBar.js"></script>
+    <script src="/shared-assets/components/SocialLinks.js"></script>
+</body>
+</html>
